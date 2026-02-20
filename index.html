@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Bingo Viewer</title>
+  <title>雑談枠チームビンゴ</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -47,16 +47,18 @@
       margin-bottom: 30px;
     }
 
+    /* ===== ここが重要 ===== */
     .frames {
       display: flex;
       gap: 20px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;      /* 改行しない */
     }
 
     .frame-box {
       display: flex;
       flex-direction: column;
       align-items: center;
+      flex: 1;                /* 均等割り */
     }
 
     .team-label {
@@ -66,8 +68,9 @@
     }
 
     iframe {
-      width: 500px;
-      height: 700px;
+      width: 100%;            /* 親要素いっぱい */
+      height: 70vh;           /* 画面高さに応じる */
+      min-width: 300px;       /* 小さくなりすぎ防止 */
       border: 1px solid #999;
     }
   </style>
@@ -116,7 +119,6 @@
 </div>
 
 <script>
-  // Firebase設定
   const firebaseConfig = {
     apiKey: "AIzaSyB-qPzDHJSnRHNHKvNdD-sTu6v1-sRnilI",
     authDomain: "zatsudan-mate.firebaseapp.com",
@@ -151,7 +153,6 @@
     });
   });
 
-  // Firebaseから反映
   db.ref("urls").on("value", snap => {
     const data = snap.val();
     if (!data) return;
@@ -161,7 +162,6 @@
     document.getElementById("url1").value = data.url1 || "";
     document.getElementById("url2").value = data.url2 || "";
 
-    // ★ iframe上のチーム名も入力値と同期
     document.getElementById("label1").textContent = data.team1 || "チームA";
     document.getElementById("label2").textContent = data.team2 || "チームB";
 
