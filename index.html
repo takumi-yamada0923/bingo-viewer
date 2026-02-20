@@ -68,9 +68,13 @@
     }
 
     iframe {
-      width: 100%;            /* 親要素いっぱい */
-      height: 70vh;           /* 画面高さに応じる */
-      min-width: 300px;       /* 小さくなりすぎ防止 */
+      width: 100%;
+      height: 70vh;
+    
+      max-width: 550px;   /* ← 最大横幅 */
+      max-height: 750px;  /* ← 最大高さ */
+    
+      min-width: 300px;
       border: 1px solid #999;
     }
   </style>
