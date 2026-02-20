@@ -17,6 +17,10 @@
       display: flex;
       gap: 10px;
     }
+    .url-input {
+      font-size: 2em;   /* だいたい2倍 */
+      padding: 5px;
+    }
     iframe {
       width: 500px;
       height: 700px;
@@ -28,11 +32,15 @@
 
 <h2>URL入力</h2>
 
-<p>チームAのURL：</p>
-<input id="url1" placeholder="URL1" size="40" class="url-input">
+<p>
+  チームAのURL：
+  <input id="url1" placeholder="URL1" size="40" class="url-input">
+</p>
 <br><br>
-<p>チームBのURL：</p>
-<input id="url2" placeholder="URL2" size="40" class="url-input">
+<p>
+  チームBのURL：
+  <input id="url2" placeholder="URL2" size="40" class="url-input">
+</p>
 <br><br>
 <button onclick="saveUrls()">反映</button>
 <hr>
