@@ -1,152 +1,173 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>雑談枠チームビンゴ</title>
+  <meta charset="utf-8">
+  <title>Bingo Viewer</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <style>
     body {
       font-family: sans-serif;
-      padding: 20px;
-      background: #f5f5f5;
-    }
-
-    h1 {
-      font-size: 2em;
+      padding: 10px;
     }
 
     h2 {
-      margin-top: 30px;
+      font-size: 2em;
     }
 
-    .team-block {
+    .team-setting {
       margin-bottom: 20px;
-      padding: 10px 10px 10px 20px;
-      border-left: 4px solid #999;
-      background: #fff;
+      padding-left: 10px;
     }
 
-    .team-block h3 {
-      font-size: 1.5em;
+    .team-setting h3 {
+      font-size: 1.8em;
       margin-bottom: 5px;
     }
 
-    .url-row {
-      font-size: 1.3em;
+    .setting-row {
+      font-size: 2em;
       margin-left: 20px;
-      margin-top: 8px;
+      margin-top: 5px;
     }
 
-    .team-input, .url-input {
+    .url-input, .team-input {
       font-size: 1em;
       padding: 5px;
       width: 80%;
       max-width: 600px;
     }
 
-    .link-area {
-      margin-top: 30px;
-      font-size: 1.3em;
-    }
-
-    .link-area a {
-      display: block;
-      margin: 10px 0;
-      font-weight: bold;
-      color: #0066cc;
-      word-break: break-all;
-    }
-
-    button {
-      font-size: 1.2em;
+    .make-btn {
+      font-size: 1.5em;
       padding: 10px 20px;
-      margin-top: 20px;
-      cursor: pointer;
+      margin-bottom: 30px;
+    }
+
+    .frames {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .frame-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .team-label {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    iframe {
+      width: 500px;
+      height: 700px;
+      border: 1px solid #999;
     }
   </style>
 </head>
 <body>
 
-<h1>雑談枠チームビンゴ</h1>
-
 <h2>設定</h2>
 
-<div class="team-block">
+<div class="team-setting">
   <h3>チーム①</h3>
-  <p class="url-row">
+  <div class="setting-row">
     チーム名：
-    <input id="team1" class="team-input" placeholder="チームA">
-  </p>
-  <p class="url-row">
+    <input id="team1" placeholder="チームA" class="team-input">
+  </div>
+  <div class="setting-row">
     URL：
-    <input id="url1" class="url-input" placeholder="https://example.com">
-  </p>
+    <input id="url1" placeholder="URL1" class="url-input">
+  </div>
 </div>
 
-<div class="team-block">
+<div class="team-setting">
   <h3>チーム②</h3>
-  <p class="url-row">
+  <div class="setting-row">
     チーム名：
-    <input id="team2" class="team-input" placeholder="チームB">
-  </p>
-  <p class="url-row">
+    <input id="team2" placeholder="チームB" class="team-input">
+  </div>
+  <div class="setting-row">
     URL：
-    <input id="url2" class="url-input" placeholder="https://example.org">
-  </p>
+    <input id="url2" placeholder="URL2" class="url-input">
+  </div>
 </div>
 
-<button onclick="openBingoMaker()">ビンゴURLを作成（別タブ）</button>
+<button class="make-btn" onclick="openBingoMaker()">ビンゴURLを作成（別タブ）</button>
 
-<div class="link-area">
-  <h2>リンク</h2>
-  <a id="link1" href="#" target="_blank">チームA</a>
-  <a id="link2" href="#" target="_blank">チームB</a>
+<hr>
+
+<div class="frames">
+  <div class="frame-box">
+    <div class="team-label" id="label1">チームA</div>
+    <iframe id="frame1"></iframe>
+  </div>
+  <div class="frame-box">
+    <div class="team-label" id="label2">チームB</div>
+    <iframe id="frame2"></iframe>
+  </div>
 </div>
 
 <script>
-  const team1Input = document.getElementById("team1");
-  const team2Input = document.getElementById("team2");
-  const url1Input = document.getElementById("url1");
-  const url2Input = document.getElementById("url2");
+  // Firebase設定
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-qPzDHJSnRHNHKvNdD-sTu6v1-sRnilI",
+    authDomain: "zatsudan-mate.firebaseapp.com",
+    databaseURL: "https://zatsudan-mate-default-rtdb.firebaseio.com",
+    projectId: "zatsudan-mate",
+    storageBucket: "zatsudan-mate.firebasestorage.app",
+    messagingSenderId: "1008942200664",
+    appId: "1:1008942200664:web:191aa9a2cca34ff32f972d",
+    measurementId: "G-JSPJDPL1P1"
+  };
 
-  const link1 = document.getElementById("link1");
-  const link2 = document.getElementById("link2");
-
-  function updateLinks() {
-    const team1 = team1Input.value || "チームA";
-    const team2 = team2Input.value || "チームB";
-
-    const url1 = url1Input.value || "#";
-    const url2 = url2Input.value || "#";
-
-    link1.textContent = team1;
-    link2.textContent = team2;
-
-    link1.href = url1;
-    link2.href = url2;
-  }
-
-  team1Input.addEventListener("input", updateLinks);
-  team2Input.addEventListener("input", updateLinks);
-  url1Input.addEventListener("input", updateLinks);
-  url2Input.addEventListener("input", updateLinks);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
   function openBingoMaker() {
-    const params = new URLSearchParams({
-      team1: team1Input.value,
-      url1: url1Input.value,
-      team2: team2Input.value,
-      url2: url2Input.value
-    });
-    window.open("?" + params.toString(), "_blank");
+    window.open("https://kumamate.net/bingo/", "_blank");
   }
 
-  const params = new URLSearchParams(location.search);
-  if (params.has("team1")) team1Input.value = params.get("team1");
-  if (params.has("url1")) url1Input.value = params.get("url1");
-  if (params.has("team2")) team2Input.value = params.get("team2");
-  if (params.has("url2")) url2Input.value = params.get("url2");
+  function saveUrls() {
+    db.ref("urls").set({
+      team1: document.getElementById("team1").value || "チームA",
+      team2: document.getElementById("team2").value || "チームB",
+      url1: document.getElementById("url1").value,
+      url2: document.getElementById("url2").value
+    });
+  }
 
-  updateLinks();
+  ["url1","url2","team1","team2"].forEach(id => {
+    document.getElementById(id).addEventListener("change", saveUrls);
+    document.getElementById(id).addEventListener("paste", () => {
+      setTimeout(saveUrls, 100);
+    });
+  });
+
+  // Firebaseから反映
+  db.ref("urls").on("value", snap => {
+    const data = snap.val();
+    if (!data) return;
+
+    document.getElementById("team1").value = data.team1 || "";
+    document.getElementById("team2").value = data.team2 || "";
+    document.getElementById("url1").value = data.url1 || "";
+    document.getElementById("url2").value = data.url2 || "";
+
+    // ★ iframe上のチーム名も入力値と同期
+    document.getElementById("label1").textContent = data.team1 || "チームA";
+    document.getElementById("label2").textContent = data.team2 || "チームB";
+
+    document.getElementById("frame1").src = data.url1 || "";
+    document.getElementById("frame2").src = data.url2 || "";
+  });
 </script>
 
 </body>
