@@ -77,6 +77,37 @@
       min-width: 300px;
       border: 1px solid #999;
     }
+
+    /* ===== PC用に少し小さくする ===== */
+    @media screen and (min-width: 900px) {
+    
+      h2 {
+        font-size: 1.5em;
+      }
+    
+      .team-setting h3 {
+        font-size: 1.3em;
+      }
+    
+      .setting-row {
+        font-size: 1.3em;
+      }
+    
+      .make-btn {
+        font-size: 1.1em;
+        padding: 6px 14px;
+      }
+    
+      .team-label {
+        font-size: 1.2em;
+      }
+    
+      iframe {
+        max-width: 450px;   /* PCでは少し小さく */
+        max-height: 650px;
+      }
+    }
+      
   </style>
 </head>
 <body>
