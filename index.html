@@ -15,76 +15,86 @@
     }
 
     .url-row {
-      font-size: 2em;   /* ① ラベル文字もinputと同じ大きさ */
+      font-size: 2em;
     }
-    
-    .url-input {
-      font-size: 1em;   /* 親（.url-row）が2emなので実質2倍 */
+
+    .url-input, .team-input {
+      font-size: 1em;
       padding: 5px;
       width: 80%;
       max-width: 600px;
     }
-    
-    .apply-btn {
-      font-size: 2em;      /* ② ボタンも大きく */
+
+    .make-btn {
+      font-size: 1.5em;
       padding: 10px 20px;
-      margin-bottom: 30px; /* ② iframeとの間に余白 */
+      margin-bottom: 30px;
     }
-    
+
     .frames {
       display: flex;
       gap: 20px;
+      flex-wrap: wrap;
     }
-    
+
     .frame-box {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-    
+
     .team-label {
-      font-size: 1.5em;  /* ③ iframe上の「チームA/B」 */
+      font-size: 1.5em;
       font-weight: bold;
       margin-bottom: 5px;
     }
-    
+
     iframe {
       width: 500px;
       height: 700px;
       border: 1px solid #999;
-    }    
+    }
   </style>
 </head>
 <body>
 
-<h2>URL入力</h2>
+<h2>設定</h2>
 
-<h2>URL入力</h2>
-
+<p class="url-row">
+  チームA名：
+  <input id="team1" placeholder="チームA" class="team-input">
+</p>
 <p class="url-row">
   チームAのURL：
-  <input id="url1" placeholder="URL1" size="40" class="url-input">
+  <input id="url1" placeholder="URL1" class="url-input">
 </p>
 
 <p class="url-row">
+  チームB名：
+  <input id="team2" placeholder="チームB" class="team-input">
+</p>
+<p class="url-row">
   チームBのURL：
-  <input id="url2" placeholder="URL2" size="40" class="url-input">
+  <input id="url2" placeholder="URL2" class="url-input">
 </p>
 
-<button class="apply-btn" onclick="saveUrls()">反映</button>
+<button class="make-btn" onclick="openBingoMaker()">ビンゴURLを作成（別タブ）</button>
+
+<hr>
 
 <div class="frames">
   <div class="frame-box">
-    <div class="team-label">チームA</div>
+    <div class="team-label" id="label1">チームA</div>
     <iframe id="frame1"></iframe>
   </div>
   <div class="frame-box">
-    <div class="team-label">チームB</div>
+    <div class="team-label" id="label2">チームB</div>
     <iframe id="frame2"></iframe>
   </div>
 </div>
+
 <script>
-  // 🔽 あなたのFirebase設定
+  // Firebase設定（あなたのプロジェクト）
   const firebaseConfig = {
     apiKey: "AIzaSyB-qPzDHJSnRHNHKvNdD-sTu6v1-sRnilI",
     authDomain: "zatsudan-mate.firebaseapp.com",
@@ -99,21 +109,42 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
+  function openBingoMaker() {
+    window.open("https://kumamate.net/bingo/", "_blank");
+  }
+
   function saveUrls() {
     db.ref("urls").set({
+      team1: document.getElementById("team1").value || "チームA",
+      team2: document.getElementById("team2").value || "チームB",
       url1: document.getElementById("url1").value,
       url2: document.getElementById("url2").value
     });
   }
 
+  // 入力 or 貼り付けで自動保存
+  ["url1","url2","team1","team2"].forEach(id => {
+    document.getElementById(id).addEventListener("change", saveUrls);
+    document.getElementById(id).addEventListener("paste", () => {
+      setTimeout(saveUrls, 100);
+    });
+  });
+
+  // Firebaseから反映
   db.ref("urls").on("value", snap => {
     const data = snap.val();
     if (!data) return;
 
-    document.getElementById("url1").value = data.url1;
-    document.getElementById("url2").value = data.url2;
-    document.getElementById("frame1").src = data.url1;
-    document.getElementById("frame2").src = data.url2;
+    document.getElementById("team1").value = data.team1 || "";
+    document.getElementById("team2").value = data.team2 || "";
+    document.getElementById("url1").value = data.url1 || "";
+    document.getElementById("url2").value = data.url2 || "";
+
+    document.getElementById("label1").textContent = data.team1 || "チームA";
+    document.getElementById("label2").textContent = data.team2 || "チームB";
+
+    document.getElementById("frame1").src = data.url1 || "";
+    document.getElementById("frame2").src = data.url2 || "";
   });
 </script>
 
