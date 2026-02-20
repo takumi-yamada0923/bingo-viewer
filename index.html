@@ -13,43 +13,76 @@
       font-family: sans-serif;
       padding: 10px;
     }
+
+    .url-row {
+      font-size: 2em;   /* ① ラベル文字もinputと同じ大きさ */
+    }
+    
+    .url-input {
+      font-size: 1em;   /* 親（.url-row）が2emなので実質2倍 */
+      padding: 5px;
+      width: 80%;
+      max-width: 600px;
+    }
+    
+    .apply-btn {
+      font-size: 2em;      /* ② ボタンも大きく */
+      padding: 10px 20px;
+      margin-bottom: 30px; /* ② iframeとの間に余白 */
+    }
+    
     .frames {
       display: flex;
-      gap: 10px;
+      gap: 20px;
     }
-    .url-input {
-      font-size: 2em;   /* だいたい2倍 */
-      padding: 5px;
+    
+    .frame-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+    
+    .team-label {
+      font-size: 1.5em;  /* ③ iframe上の「チームA/B」 */
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
     iframe {
       width: 500px;
       height: 700px;
       border: 1px solid #999;
-    }
+    }    
   </style>
 </head>
 <body>
 
 <h2>URL入力</h2>
 
-<p>
+<h2>URL入力</h2>
+
+<p class="url-row">
   チームAのURL：
   <input id="url1" placeholder="URL1" size="40" class="url-input">
 </p>
-<br><br>
-<p>
+
+<p class="url-row">
   チームBのURL：
   <input id="url2" placeholder="URL2" size="40" class="url-input">
 </p>
-<br><br>
-<button onclick="saveUrls()">反映</button>
-<hr>
+
+<button class="apply-btn" onclick="saveUrls()">反映</button>
 
 <div class="frames">
-  <iframe id="frame1"></iframe>
-  <iframe id="frame2"></iframe>
+  <div class="frame-box">
+    <div class="team-label">チームA</div>
+    <iframe id="frame1"></iframe>
+  </div>
+  <div class="frame-box">
+    <div class="team-label">チームB</div>
+    <iframe id="frame2"></iframe>
+  </div>
 </div>
-
 <script>
   // 🔽 あなたのFirebase設定
   const firebaseConfig = {
