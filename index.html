@@ -78,33 +78,38 @@
       border: 1px solid #999;
     }
 
-        
-    /* ===== PCのとき設定エリアを小さく ===== */
-    @media screen and (min-width: 900px) {
+            
+    /* ===== 画面が横長のときだけ設定を小さくする ===== */
+    @media screen and (orientation: landscape) {
     
       h2 {
-        font-size: 1.0em;
+        font-size: 0.9em;
       }
     
       .team-setting h3 {
-        font-size: 0.9em;
+        font-size: 0.8em;
       }
     
       .setting-row {
-        font-size: 0.9em;
+        font-size: 0.8em;
       }
     
       .url-input, .team-input {
-        font-size: 0.8em;
+        font-size: 0.7em;
         padding: 3px;
       }
     
       .make-btn {
-        font-size: 0.8em;
+        font-size: 0.7em;
         padding: 6px 12px;
       }
+    
+      /* ビンゴ画面も少し縮小 */
+      .frame-box {
+        transform: scale(0.8);
+        transform-origin: top center;
+      }
     }
-
     
   </style>
 </head>
