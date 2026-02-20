@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Bingo Viewer</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 10px;
+    }
+    .frames {
+      display: flex;
+      gap: 10px;
+    }
+    iframe {
+      width: 500px;
+      height: 700px;
+      border: 1px solid #999;
+    }
+  </style>
+</head>
+<body>
+
+<h2>URL入力</h2>
+<input id="url1" placeholder="URL1" size="60">
+<input id="url2" placeholder="URL2" size="60">
+<button onclick="saveUrls()">反映</button>
+
+<hr>
+
+<div class="frames">
+  <iframe id="frame1"></iframe>
+  <iframe id="frame2"></iframe>
+</div>
+
+<script>
+  // 🔽 あなたのFirebase設定
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-qPzDHJSnRHNHKvNdD-sTu6v1-sRnilI",
+    authDomain: "zatsudan-mate.firebaseapp.com",
+    databaseURL: "https://zatsudan-mate-default-rtdb.firebaseio.com",
+    projectId: "zatsudan-mate",
+    storageBucket: "zatsudan-mate.firebasestorage.app",
+    messagingSenderId: "1008942200664",
+    appId: "1:1008942200664:web:191aa9a2cca34ff32f972d",
+    measurementId: "G-JSPJDPL1P1"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  function saveUrls() {
+    db.ref("urls").set({
+      url1: document.getElementById("url1").value,
+      url2: document.getElementById("url2").value
+    });
+  }
+
+  db.ref("urls").on("value", snap => {
+    const data = snap.val();
+    if (!data) return;
+
+    document.getElementById("url1").value = data.url1;
+    document.getElementById("url2").value = data.url2;
+    document.getElementById("frame1").src = data.url1;
+    document.getElementById("frame2").src = data.url2;
+  });
+</script>
+
+</body>
+</html>
