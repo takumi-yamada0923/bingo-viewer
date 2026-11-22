@@ -1,240 +1,242 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <title>雑談枠チームビンゴ</title>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 10px;
-    }
-
-    h2 {
-      font-size: 2em;
-    }
-
-    .team-setting {
-      margin-bottom: 20px;
-      padding-left: 10px;
-    }
-
-    .team-setting h3 {
-      font-size: 1.8em;
-      margin-bottom: 5px;
-    }
-
-    .setting-row {
-      font-size: 2em;
-      margin-left: 20px;
-      margin-top: 5px;
-    }
-
-    .url-input, .team-input {
-      font-size: 1em;
-      padding: 5px;
-      width: 80%;
-      max-width: 600px;
-    }
-
-    .make-btn {
-      font-size: 1.5em;
-      padding: 10px 20px;
-      margin-bottom: 30px;
-    }
-
-    .frames {
-      display: flex;
-      gap: 20px;
-      flex-wrap: nowrap;
-    }
-
-    .frame-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex: 1;
-    }
-
-    .team-label {
-      font-size: 1.5em;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    iframe {
-      width: 100%;
-      height: 70vh;
-
-      max-width: 550px;
-      max-height: 750px;
-
-      min-width: 300px;
-      border: 1px solid #999;
-    }
-
-    /* ===== 横長画面用調整 ===== */
-    @media screen and (orientation: landscape) {
-
-      h2 {
-        font-size: 0.9em;
-      }
-
-      .team-setting h3 {
-        font-size: 0.8em;
-      }
-
-      .setting-row {
-        font-size: 0.8em;
-      }
-
-      .url-input, .team-input {
-        font-size: 0.7em;
-        padding: 3px;
-      }
-
-      .make-btn {
-        font-size: 0.7em;
-        padding: 6px 12px;
-      }
-
-      /* iframeを少し縦に伸ばす */
-      iframe {
-        height: 100vh;
-        max-height: 850px;
-      }
-
-      .frame-box {
-        transform: scale(0.70);
-        transform-origin: top center;
-      }
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .header h2 {
-      margin: 0;
-    }
-    
-    .header a {
-      font-size: 1em;
-      text-decoration: none;
-      color: #2196f3;
-      font-weight: bold;
-    }
-    
-    .header a:hover {
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>雑談枠チームビンゴ</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+:root { --gap: 5px; --cell-min: 94px; }
+* { box-sizing: border-box; }
+body { font-family: sans-serif; margin: 0; padding: 14px; color: #222; background: #f6f7f9; }
+header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+h1 { font-size: clamp(1.15rem, 3vw, 1.8rem); margin:0; }
+header a { color:#1976d2; font-weight:bold; text-decoration:none; font-size:.9rem; }
+.settings { display:flex; flex-wrap:wrap; gap:10px; padding:12px; background:white; border-radius:10px; margin-bottom:16px; }
+.setting { display:flex; align-items:center; gap:8px; }
+.setting input { font-size:1rem; padding:7px; width:min(42vw,240px); }
+.teams { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; align-items:start; }
+.team { min-width:0; background:white; border-radius:12px; padding:12px; box-shadow:0 1px 5px #0001; }
+.team-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+.team-title { font-size:1.25rem; font-weight:bold; overflow-wrap:anywhere; }
+button { cursor:pointer; border:0; border-radius:7px; padding:8px 12px; background:#1976d2; color:white; font-size:.95rem; font-weight:bold; white-space:nowrap; }
+button:disabled { opacity:.5; cursor:wait; }
+.board { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:var(--gap); }
+.cell { min-width:0; aspect-ratio: .82 / 1; border:1px solid #c9cdd2; border-radius:7px; padding:4px 2px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#222; background:#fff; cursor:pointer; overflow:hidden; transition:background .12s; }
+.cell.red { background:#ef4444; color:white; border-color:#c62828; }
+.cell.blue { background:#3b82f6; color:white; border-color:#1d4ed8; }
+.cell img { display:block; width:100%; height:72%; object-fit:contain; }
+.cell .name { font-size:clamp(.58rem,1.1vw,.88rem); line-height:1.15; font-weight:bold; text-align:center; overflow-wrap:anywhere; }
+.cell .no-image { height:72%; display:flex; align-items:center; justify-content:center; font-size:clamp(1.2rem,3vw,2rem); font-weight:bold; }
+.status { margin-top:12px; color:#666; font-size:.85rem; }
+.legend { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:10px 0 16px; font-size:.85rem; color:#555; }
+.dot { display:inline-block; width:14px; height:14px; border:1px solid #aaa; vertical-align:middle; margin-right:4px; border-radius:3px; }
+.dot.white { background:white; } .dot.red { background:#ef4444; border-color:#c62828; } .dot.blue { background:#3b82f6; border-color:#1d4ed8; }
+@media (max-width:760px) {
+ body { padding:8px; }
+ .teams { grid-template-columns:1fr; gap:12px; }
+ .team { padding:9px; }
+ .cell { aspect-ratio:.95 / 1; }
+ .cell img,.cell .no-image { height:70%; }
+ .cell .name { font-size:clamp(.7rem,2.7vw,.95rem); }
+}
+@media (orientation:landscape) and (max-height:650px) {
+ body { padding:6px; }
+ .settings { padding:6px; margin-bottom:8px; }
+ .team { padding:7px; }
+ .cell { aspect-ratio:.9 / 1; }
+ .cell img,.cell .no-image { height:72%; }
+}
+</style>
 </head>
 <body>
+<header>
+  <h1>雑談枠チームビンゴ</h1>
+  <a href="https://takumi-yamada0923.github.io/vip-checker/" target="_blank" rel="noopener">雑談枠VIP管理はこちら</a>
+</header>
 
-<div class="header">
-  <h2>設定</h2>
-  <a href="https://takumi-yamada0923.github.io/vip-checker/" target="_blank">
-    雑談枠VIP管理はこちら
-  </a>
+<div class="settings">
+  <label class="setting">チーム①名 <input id="team1Name" maxlength="24" placeholder="チームA"></label>
+  <label class="setting">チーム②名 <input id="team2Name" maxlength="24" placeholder="チームB"></label>
+</div>
+<div class="legend">
+  <span><i class="dot white"></i>白：未選択</span>
+  <span><i class="dot red"></i>赤：1回クリック</span>
+  <span><i class="dot blue"></i>青：2回クリック</span>
+  <span>もう一度クリックすると白に戻ります</span>
 </div>
 
-<div class="team-setting">
-  <h3>チーム①</h3>
-  <div class="setting-row">
-    チーム名：
-    <input id="team1" placeholder="チームA" class="team-input">
-  </div>
-  <div class="setting-row">
-    URL：
-    <input id="url1" placeholder="URL1" class="url-input">
-  </div>
-</div>
-
-<div class="team-setting">
-  <h3>チーム②</h3>
-  <div class="setting-row">
-    チーム名：
-    <input id="team2" placeholder="チームB" class="team-input">
-  </div>
-  <div class="setting-row">
-    URL：
-    <input id="url2" placeholder="URL2" class="url-input">
-  </div>
-</div>
-
-<button class="make-btn" onclick="openBingoMaker()">ビンゴURLを作成（別タブ）</button>
-
-<hr>
-
-<div class="frames">
-  <div class="frame-box">
-    <div class="team-label" id="label1">チームA</div>
-    <iframe id="frame1"></iframe>
-  </div>
-  <div class="frame-box">
-    <div class="team-label" id="label2">チームB</div>
-    <iframe id="frame2"></iframe>
-  </div>
-</div>
+<main class="teams">
+  <section class="team">
+    <div class="team-head"><div class="team-title" id="team1Title">チームA</div><button id="reroll1">チーム①を再生成</button></div>
+    <div class="board" id="board1"></div>
+  </section>
+  <section class="team">
+    <div class="team-head"><div class="team-title" id="team2Title">チームB</div><button id="reroll2">チーム②を再生成</button></div>
+    <div class="board" id="board2"></div>
+  </section>
+</main>
+<div class="status" id="status">Firebaseに接続しています...</div>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyB-qPzDHJSnRHNHKvNdD-sTu6v1-sRnilI",
-    authDomain: "zatsudan-mate.firebaseapp.com",
-    databaseURL: "https://zatsudan-mate-default-rtdb.firebaseio.com",
-    projectId: "zatsudan-mate",
-    storageBucket: "zatsudan-mate.firebasestorage.app",
-    messagingSenderId: "1008942200664",
-    appId: "1:1008942200664:web:191aa9a2cca34ff32f972d",
-    measurementId: "G-JSPJDPL1P1"
+const firebaseConfig = {
+  apiKey: "AIzaSyB-qPzDHJSnRHNHKvNd-D-sTu6v1-sRnilI",
+  authDomain: "zatsudan-mate.firebaseapp.com",
+  databaseURL: "https://zatsudan-mate-default-rtdb.firebaseio.com",
+  projectId: "zatsudan-mate",
+  storageBucket: "zatsudan-mate.firebasestorage.app",
+  messagingSenderId: "1008942200664",
+  appId: "1:1008942200664:web:191aa9a2cca34ff32f972d",
+  measurementId: "G-JSPJDPL1P1"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const bingoRef = db.ref("bingo");
+
+const fighters = [
+  ["マリオ","000"],["ドンキーコング","001"],["リンク","002"],["サムス","003"],["ダークサムス","004"],
+  ["ヨッシー","005"],["カービィ","006"],["フォックス","007"],["ピカチュウ","008"],["ルイージ","009"],
+  ["ネス","010"],["キャプテン・ファルコン","011"],["プリン","012"],["ピーチ","013"],["デイジー","014"],
+  ["クッパ","015"],["アイスクライマー","016"],["シーク","017"],["ゼルダ","018"],["ドクターマリオ","019"],
+  ["ピチュー","020"],["ファルコ","021"],["マルス","022"],["ルキナ","023"],["こどもリンク","024"],
+  ["ガノンドロフ","025"],["ミュウツー","026"],["ロイ","027"],["クロム","028"],["Mr.ゲーム＆ウォッチ","029"],
+  ["メタナイト","030"],["ピット","031"],["ブラックピット","032"],["ゼロスーツサムス","033"],["ワリオ","034"],
+  ["スネーク","035"],["アイク","036"],["ゼニガメ","037"],["フシギソウ","037"],["リザードン","037"],
+  ["ディディーコング","038"],["リュカ","039"],["ソニック","040"],["デデデ","041"],["ピクミン＆オリマー","042"],
+  ["ルカリオ","043"],["ロボット","044"],["トゥーンリンク","045"],["ウルフ","046"],["むらびと","047"],
+  ["ロックマン","048"],["Wii Fit トレーナー","049"],["ロゼッタ＆チコ","050"],["リトル・マック","051"],["ゲッコウガ","052"],
+  ["Miiファイター（格闘）","./mii1.png"],["Miiファイター（剣術）","./mii2.png"],["Miiファイター（射撃）","./mii3.png"],
+  ["パルテナ","054"],["パックマン","055"],["ルフレ","056"],["シュルク","057"],["クッパJr.","058"],
+  ["ダックハント","059"],["リュウ","060"],["ケン","061"],["クラウド","062"],["カムイ","063"],
+  ["ベヨネッタ","064"],["インクリング","065"],["リドリー","066"],["シモン","067"],["リヒター","068"],
+  ["キングクルール","069"],["しずえ","070"],["ガオガエン","071"],["パックンフラワー","072"],["ジョーカー","073"],
+  ["勇者","074"],["バンジョー＆カズーイ","075"],["テリー","076"],["ベレト／ベレス","077"],["ミェンミェン","078"],
+  ["スティーブ","079"],["セフィロス","080"],["ホムラ","081"],["ヒカリ","081"],["カズヤ","082"],["ソラ","083"]].map(([name,id]) => ({name, image:id === null ? null : (String(id).startsWith("./") ? id : `https://www.smashbros.com/assets_v2/img/fighter/${id}/main.png`)}));
+
+const DEFAULT = {
+  team1Name: "チームA",
+  team2Name: "チームB",
+  team1: null,
+  team2: null
+};
+let currentData = null;
+let applyingRemote = false;
+let saveTimers = {};
+
+function pickFighters() {
+  const pool = [...fighters];
+  const picked = [];
+  while (picked.length < 25 && pool.length) {
+    const index = Math.floor(Math.random() * pool.length);
+    picked.push({ name: pool[index].name, image: pool[index].image, color: 0 });
+    pool.splice(index, 1);
+  }
+  return picked;
+}
+function normalizeTeam(team) {
+  if (!Array.isArray(team) || team.length !== 25) return pickFighters();
+  return team.map((item, i) => ({
+    name: item && item.name ? item.name : fighters[i].name,
+    image: item && item.image ? item.image : null,
+    color: item && [0,1,2].includes(Number(item.color)) ? Number(item.color) : 0
+  }));
+}
+function renderTeam(teamNo, team) {
+  const board = document.getElementById(`board${teamNo}`);
+  board.replaceChildren();
+  team.forEach((fighter, index) => {
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "cell" + (fighter.color === 1 ? " red" : fighter.color === 2 ? " blue" : "");
+    cell.setAttribute("aria-label", `${fighter.name}、色状態${fighter.color}`);
+    if (fighter.image) {
+      const img = document.createElement("img");
+      img.src = fighter.image;
+      img.alt = fighter.name;
+      img.loading = "lazy";
+      img.onerror = () => { img.remove(); const fallback = document.createElement("div"); fallback.className="no-image"; fallback.textContent="🎮"; cell.insertBefore(fallback, cell.firstChild); };
+      cell.appendChild(img);
+    } else {
+      const fallback = document.createElement("div");
+      fallback.className = "no-image";
+      fallback.textContent = "🎮";
+      cell.appendChild(fallback);
+    }
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = fighter.name;
+    cell.appendChild(name);
+    cell.addEventListener("click", () => {
+      if (!currentData) return;
+      const key = `team${teamNo}`;
+      currentData[key][index].color = (currentData[key][index].color + 1) % 3;
+      renderTeam(teamNo, currentData[key]);
+      saveTeam(key);
+    });
+    board.appendChild(cell);
+  });
+}
+function renderAll(data) {
+  currentData = {
+    team1Name: data.team1Name || "チームA",
+    team2Name: data.team2Name || "チームB",
+    team1: normalizeTeam(data.team1),
+    team2: normalizeTeam(data.team2)
   };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  function openBingoMaker() {
-    window.open("https://kumamate.net/bingo/", "_blank");
-  }
-
-  function saveUrls() {
-    db.ref("urls").set({
-      team1: document.getElementById("team1").value || "チームA",
-      team2: document.getElementById("team2").value || "チームB",
-      url1: document.getElementById("url1").value,
-      url2: document.getElementById("url2").value
-    });
-  }
-
-  ["url1","url2","team1","team2"].forEach(id => {
-    document.getElementById(id).addEventListener("change", saveUrls);
-    document.getElementById(id).addEventListener("paste", () => {
-      setTimeout(saveUrls, 100);
-    });
+  [1,2].forEach(n => {
+    const name = currentData[`team${n}Name`] || (n===1 ? "チームA" : "チームB");
+    document.getElementById(`team${n}Title`).textContent = name;
+    document.getElementById(`team${n}Name`).value = name;
+    renderTeam(n, currentData[`team${n}`]);
   });
-
-  db.ref("urls").on("value", snap => {
-    const data = snap.val();
-    if (!data) return;
-
-    document.getElementById("team1").value = data.team1 || "";
-    document.getElementById("team2").value = data.team2 || "";
-    document.getElementById("url1").value = data.url1 || "";
-    document.getElementById("url2").value = data.url2 || "";
-
-    document.getElementById("label1").textContent = data.team1 || "チームA";
-    document.getElementById("label2").textContent = data.team2 || "チームB";
-
-    document.getElementById("frame1").src = data.url1 || "";
-    document.getElementById("frame2").src = data.url2 || "";
+}
+function saveTeam(key) {
+  if (!currentData) return;
+  bingoRef.child(key).set(currentData[key]).catch(showError);
+}
+function reroll(teamNo) {
+  if (!currentData) return;
+  const key = `team${teamNo}`;
+  currentData[key] = pickFighters();
+  renderTeam(teamNo, currentData[key]);
+  saveTeam(key);
+}
+function showError(error) {
+  console.error(error);
+  document.getElementById("status").textContent = "Firebaseへの保存に失敗しました。接続・データベースルールを確認してください。";
+}
+document.getElementById("reroll1").addEventListener("click", () => reroll(1));
+document.getElementById("reroll2").addEventListener("click", () => reroll(2));
+[1,2].forEach(n => {
+  document.getElementById(`team${n}Name`).addEventListener("change", e => {
+    if (!currentData) return;
+    currentData[`team${n}Name`] = e.target.value.trim() || (n===1 ? "チームA" : "チームB");
+    document.getElementById(`team${n}Title`).textContent = currentData[`team${n}Name`];
+    bingoRef.child(`team${n}Name`).set(currentData[`team${n}Name`]).catch(showError);
   });
+});
+
+// 初回データはトランザクションで一度だけ作成し、同時アクセス時の上書きを防ぐ
+bingoRef.transaction(existing => {
+  if (existing !== null) return;
+  return {
+    team1Name: DEFAULT.team1Name,
+    team2Name: DEFAULT.team2Name,
+    team1: pickFighters(),
+    team2: pickFighters()
+  };
+}, (error, committed) => {
+  if (error) showError(error);
+  else document.getElementById("status").textContent = "共有ビンゴに接続しました。変更は全員に反映されます。";
+}, false);
+
+bingoRef.on("value", snapshot => {
+  const data = snapshot.val();
+  if (!data) return;
+  renderAll(data);
+  document.getElementById("status").textContent = "接続中：変更は全員にリアルタイム共有されています";
+}, error => showError(error));
 </script>
-
 </body>
 </html>
