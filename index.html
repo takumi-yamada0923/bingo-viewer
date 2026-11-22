@@ -26,8 +26,8 @@ button:disabled { opacity:.5; cursor:wait; }
 .cell { min-width:0; aspect-ratio: .82 / 1; border:1px solid #c9cdd2; border-radius:7px; padding:4px 2px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#222; background:#fff; cursor:pointer; overflow:hidden; transition:background .12s; }
 .cell.red { background:#ef4444; color:white; border-color:#c62828; }
 .cell.blue { background:#3b82f6; color:white; border-color:#1d4ed8; }
-.cell img { display:block; width:100%; height:72%; object-fit:contain; }
-.cell .name { font-size:clamp(.58rem,1.1vw,.88rem); line-height:1.15; font-weight:bold; text-align:center; overflow-wrap:anywhere; }
+.cell img { display:block; width:100%; height:100%; object-fit:contain; }
+.cell .name { display:none; }
 .cell .no-image { height:72%; display:flex; align-items:center; justify-content:center; font-size:clamp(1.2rem,3vw,2rem); font-weight:bold; }
 .status { margin-top:12px; color:#666; font-size:.85rem; }
 .legend { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:10px 0 16px; font-size:.85rem; color:#555; }
@@ -38,15 +38,15 @@ button:disabled { opacity:.5; cursor:wait; }
  .teams { grid-template-columns:1fr; gap:12px; }
  .team { padding:9px; }
  .cell { aspect-ratio:.95 / 1; }
- .cell img,.cell .no-image { height:70%; }
- .cell .name { font-size:clamp(.7rem,2.7vw,.95rem); }
+ .cell img,.cell .no-image { height:100%; }
+ .cell .name { display:none; }
 }
 @media (orientation:landscape) and (max-height:650px) {
  body { padding:6px; }
  .settings { padding:6px; margin-bottom:8px; }
  .team { padding:7px; }
  .cell { aspect-ratio:.9 / 1; }
- .cell img,.cell .no-image { height:72%; }
+ .cell img,.cell .no-image { height:100%; }
 }
 </style>
 </head>
@@ -94,25 +94,38 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const bingoRef = db.ref("bingo");
 
-const fighters = [
-  ["マリオ","000"],["ドンキーコング","001"],["リンク","002"],["サムス","003"],["ダークサムス","004"],
-  ["ヨッシー","005"],["カービィ","006"],["フォックス","007"],["ピカチュウ","008"],["ルイージ","009"],
-  ["ネス","010"],["キャプテン・ファルコン","011"],["プリン","012"],["ピーチ","013"],["デイジー","014"],
-  ["クッパ","015"],["アイスクライマー","016"],["シーク","017"],["ゼルダ","018"],["ドクターマリオ","019"],
-  ["ピチュー","020"],["ファルコ","021"],["マルス","022"],["ルキナ","023"],["こどもリンク","024"],
-  ["ガノンドロフ","025"],["ミュウツー","026"],["ロイ","027"],["クロム","028"],["Mr.ゲーム＆ウォッチ","029"],
-  ["メタナイト","030"],["ピット","031"],["ブラックピット","032"],["ゼロスーツサムス","033"],["ワリオ","034"],
-  ["スネーク","035"],["アイク","036"],["ゼニガメ","037"],["フシギソウ","037"],["リザードン","037"],
-  ["ディディーコング","038"],["リュカ","039"],["ソニック","040"],["デデデ","041"],["ピクミン＆オリマー","042"],
-  ["ルカリオ","043"],["ロボット","044"],["トゥーンリンク","045"],["ウルフ","046"],["むらびと","047"],
-  ["ロックマン","048"],["Wii Fit トレーナー","049"],["ロゼッタ＆チコ","050"],["リトル・マック","051"],["ゲッコウガ","052"],
-  ["Miiファイター（格闘）","./mii1.png"],["Miiファイター（剣術）","./mii2.png"],["Miiファイター（射撃）","./mii3.png"],
-  ["パルテナ","054"],["パックマン","055"],["ルフレ","056"],["シュルク","057"],["クッパJr.","058"],
-  ["ダックハント","059"],["リュウ","060"],["ケン","061"],["クラウド","062"],["カムイ","063"],
-  ["ベヨネッタ","064"],["インクリング","065"],["リドリー","066"],["シモン","067"],["リヒター","068"],
-  ["キングクルール","069"],["しずえ","070"],["ガオガエン","071"],["パックンフラワー","072"],["ジョーカー","073"],
-  ["勇者","074"],["バンジョー＆カズーイ","075"],["テリー","076"],["ベレト／ベレス","077"],["ミェンミェン","078"],
-  ["スティーブ","079"],["セフィロス","080"],["ホムラ","081"],["ヒカリ","081"],["カズヤ","082"],["ソラ","083"]].map(([name,id]) => ({name, image:id === null ? null : (String(id).startsWith("./") ? id : `https://www.smashbros.com/assets_v2/img/fighter/${id}/main.png`)}));
+const fighterImageByName = {
+  "マリオ": "mario", "ドンキーコング": "donkey_kong", "リンク": "link",
+  "サムス": "samus", "ダークサムス": "dark_samus", "ヨッシー": "yoshi",
+  "カービィ": "kirby", "フォックス": "fox", "ピカチュウ": "pikachu", "ルイージ": "luigi",
+  "ネス": "ness", "キャプテン・ファルコン": "captain_falcon", "プリン": "jigglypuff",
+  "ピーチ": "peach", "デイジー": "daisy", "クッパ": "bowser", "アイスクライマー": "ice_climbers",
+  "シーク": "sheik", "ゼルダ": "zelda", "ドクターマリオ": "dr_mario", "ピチュー": "pichu",
+  "ファルコ": "falco", "マルス": "marth", "ルキナ": "lucina", "こどもリンク": "young_link",
+  "ガノンドロフ": "ganondorf", "ミュウツー": "mewtwo", "ロイ": "roy", "クロム": "chrom",
+  "Mr.ゲーム＆ウォッチ": "mr_game_and_watch", "メタナイト": "meta_knight", "ピット": "pit",
+  "ブラックピット": "dark_pit", "ゼロスーツサムス": "zero_suit_samus", "ワリオ": "wario",
+  "スネーク": "snake", "アイク": "ike", "ゼニガメ": "pokemon_trainer", "フシギソウ": "pokemon_trainer",
+  "リザードン": "pokemon_trainer", "ディディーコング": "diddy_kong", "リュカ": "lucas",
+  "ソニック": "sonic", "デデデ": "king_dedede", "ピクミン＆オリマー": "olimar", "ルカリオ": "lucario",
+  "ロボット": "rob", "トゥーンリンク": "toon_link", "ウルフ": "wolf", "むらびと": "villager",
+  "ロックマン": "mega_man", "Wii Fit トレーナー": "wii_fit_trainer", "ロゼッタ＆チコ": "rosalina_and_luma",
+  "リトル・マック": "little_mac", "ゲッコウガ": "greninja",
+  "Miiファイター（格闘）": "./mii1.png", "Miiファイター（剣術）": "./mii2.png", "Miiファイター（射撃）": "./mii3.png",
+  "パルテナ": "palutena", "パックマン": "pac_man", "ルフレ": "robin", "シュルク": "shulk",
+  "クッパJr.": "bowser_jr", "ダックハント": "duck_hunt", "リュウ": "ryu", "ケン": "ken",
+  "クラウド": "cloud", "カムイ": "corrin", "ベヨネッタ": "bayonetta", "インクリング": "inkling",
+  "リドリー": "ridley", "シモン": "simon", "リヒター": "richter", "キングクルール": "king_k_rool",
+  "しずえ": "shizue", "ガオガエン": "gaogaen", "パックンフラワー": "packun_flower", "ジョーカー": "joker",
+  "勇者": "dq_hero", "バンジョー＆カズーイ": "banjo_and_kazooie", "テリー": "terry", "ベレト／ベレス": "byleth",
+  "ミェンミェン": "minmin", "スティーブ": "steve", "セフィロス": "sephiroth", "ホムラ": "homura",
+  "ヒカリ": "hikari", "カズヤ": "kazuya", "ソラ": "sora"
+};
+
+const fighters = Object.entries(fighterImageByName).map(([name, slug]) => ({
+  name,
+  image: slug.startsWith("./") ? slug : `https://www.smashbros.com/assets_v2/img/fighter/${slug}/main.png`
+}));
 
 const DEFAULT = {
   team1Name: "チームA",
@@ -138,7 +151,11 @@ function normalizeTeam(team) {
   if (!Array.isArray(team) || team.length !== 25) return pickFighters();
   return team.map((item, i) => ({
     name: item && item.name ? item.name : fighters[i].name,
-    image: item && item.image ? item.image : null,
+    image: fighterImageByName[item && item.name ? item.name : fighters[i].name]
+      ? (fighterImageByName[item && item.name ? item.name : fighters[i].name].startsWith("./")
+        ? fighterImageByName[item && item.name ? item.name : fighters[i].name]
+        : `https://www.smashbros.com/assets_v2/img/fighter/${fighterImageByName[item && item.name ? item.name : fighters[i].name]}/main.png`)
+      : (item && item.image ? item.image : null),
     color: item && [0,1,2].includes(Number(item.color)) ? Number(item.color) : 0
   }));
 }
@@ -155,18 +172,9 @@ function renderTeam(teamNo, team) {
       img.src = fighter.image;
       img.alt = fighter.name;
       img.loading = "lazy";
-      img.onerror = () => { img.remove(); const fallback = document.createElement("div"); fallback.className="no-image"; fallback.textContent="🎮"; cell.insertBefore(fallback, cell.firstChild); };
+      img.onerror = () => { img.remove(); };
       cell.appendChild(img);
-    } else {
-      const fallback = document.createElement("div");
-      fallback.className = "no-image";
-      fallback.textContent = "🎮";
-      cell.appendChild(fallback);
     }
-    const name = document.createElement("div");
-    name.className = "name";
-    name.textContent = fighter.name;
-    cell.appendChild(name);
     cell.addEventListener("click", () => {
       if (!currentData) return;
       const key = `team${teamNo}`;
