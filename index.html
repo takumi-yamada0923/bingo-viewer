@@ -140,25 +140,57 @@ let saveTimers = {};
 function pickFighters() {
   const pool = [...fighters];
   const picked = [];
-  while (picked.length < 25 && pool.length) {
+
+  // キャラクターを24体ランダム選択
+  while (picked.length < 24 && pool.length) {
     const index = Math.floor(Math.random() * pool.length);
-    picked.push({ name: pool[index].name, image: pool[index].image, color: 0 });
+    picked.push({
+      name: pool[index].name,
+      image: pool[index].image,
+      color: 0
+    });
     pool.splice(index, 1);
   }
+
+  // 13番目（中央）に空マスを挿入
+  picked.splice(12, 0, {
+    name: "",
+    image: null,
+    color: 0
+  });
   return picked;
 }
+
 function normalizeTeam(team) {
-  if (!Array.isArray(team) || team.length !== 25) return pickFighters();
-  return team.map((item, i) => ({
-    name: item && item.name ? item.name : fighters[i].name,
-    image: fighterImageByName[item && item.name ? item.name : fighters[i].name]
-      ? (fighterImageByName[item && item.name ? item.name : fighters[i].name].startsWith("./")
-        ? fighterImageByName[item && item.name ? item.name : fighters[i].name]
-        : `https://www.smashbros.com/assets_v2/img/fighter/${fighterImageByName[item && item.name ? item.name : fighters[i].name]}/main.png`)
-      : (item && item.image ? item.image : null),
-    color: item && [0,1,2].includes(Number(item.color)) ? Number(item.color) : 0
-  }));
+  if (!Array.isArray(team) || team.length !== 25) {
+    return pickFighters();
+  }
+  const normalized = team.map((item, i) => {
+    const fallbackName = fighters[i] ? fighters[i].name : "";
+    const name = item && item.name ? item.name : fallbackName;
+    const slug = fighterImageByName[name];
+    return {
+      name: name,
+      image: slug
+        ? (slug.startsWith("./")
+            ? slug
+            : `https://www.smashbros.com/assets_v2/img/fighter/${slug}/main.png`)
+        : (item && item.image ? item.image : null),
+      color: item && [0, 1, 2].includes(Number(item.color))
+        ? Number(item.color)
+        : 0
+    };
+  });
+
+  // 中央マスは必ず空欄にする
+  normalized[12] = {
+    name: "",
+    image: null,
+    color: normalized[12].color
+  };
+  return normalized;
 }
+ 
 function renderTeam(teamNo, team) {
   const board = document.getElementById(`board${teamNo}`);
   board.replaceChildren();
@@ -166,7 +198,7 @@ function renderTeam(teamNo, team) {
     const cell = document.createElement("button");
     cell.type = "button";
     cell.className = "cell" + (fighter.color === 1 ? " red" : fighter.color === 2 ? " blue" : "");
-    cell.setAttribute("aria-label", `${fighter.name}、色状態${fighter.color}`);
+    cell.setAttribute("aria-label", `${fighter.name || "中央の空マス"}、色状態${fighter.color}`);
     if (fighter.image) {
       const img = document.createElement("img");
       img.src = fighter.image;
